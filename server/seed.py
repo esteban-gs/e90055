@@ -1,14 +1,31 @@
+from pydantic.types import Json
 from sqlalchemy.orm.session import Session
+from sqlalchemy.sql.expression import cast
+from sqlalchemy.sql.sqltypes import JSON
 from api.dependencies.db import get_db
 from api.core.security import get_password_hash
-from api.models import User, Prospect, Campaign, CampaignProspect
+from api.models import User, Prospect, Campaign, CampaignProspect, ProspectsFile
 
 
 def seed_data(db: Session):
     print("-- Seeding Data --")
     # Create user
-    user1 = User(email="test@test.com", password_digest=get_password_hash("sample"))
+    user1 = User(email="test@test.com",
+                 password_digest=get_password_hash("sample"))
     db.add(user1)
+
+    prospectFiles1 = ProspectsFile(
+        fileAddress="server/files/file1.csv",
+        preview={
+            ["a", "b"],
+            ["1", "2"],
+            ["1", "2"],            
+        },
+        user=user1)
+    db.add(prospectFiles1)
+
+    example1 = prospectFiles1.preview
+    print(type(example1))
 
     for i in range(20):
         # Create campaigns for user
