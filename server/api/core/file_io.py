@@ -32,8 +32,14 @@ def save_file_to_disk(file: UploadFile, file_id: int) -> string:
     return file_save_path
 
 
-def csv_to_json(file: UploadFile, limitRows: int, file_location) -> dict:
+def csv_to_json(limitRows: int, file_location, headings: bool = True) -> dict:
     data: dict = {}
+
+    rowLimit = 0
+    if headings:
+        rowLimit = limitRows + 1
+    else:
+        rowLimit = limitRows
 
     json_location = file_location.split(".")[0] + ".json"
 
@@ -44,19 +50,14 @@ def csv_to_json(file: UploadFile, limitRows: int, file_location) -> dict:
     with open(file_location, encoding='utf-8') as csvf:
         csvReader = csv.reader(csvf)
         counter = 0
-        # only the first 10 rows
         for row in csvReader:
-            if counter == 11:  # first one is the heading
+            if counter == rowLimit:  # first one is the heading
                 break
             print("raw row")
             print(row)
             nested = []
             for word in row:
                 nested.append(word)
-            data[counter] =nested
+            data[counter] = nested
             counter += 1
-
-    with open(json_location, 'w', encoding='utf-8') as jsonf:
-        jsonf.write(json.dumps(data, indent=2))
-
     return data
