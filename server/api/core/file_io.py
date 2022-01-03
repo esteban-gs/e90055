@@ -32,26 +32,14 @@ def save_file_to_disk(file: UploadFile, file_id: int) -> string:
     return file_save_path
 
 
-def csv_to_json(limitRows: int, file_location, headings: bool = True) -> list:
+def get_json_from_scv(all: bool, file_location, headings: bool = True) -> list:
     data: list = []
-
-    rowLimit = 0
-    if headings:
-        rowLimit = limitRows + 1
-    else:
-        rowLimit = limitRows
-
-    json_location = file_location.split(".")[0] + ".json"
-
-    # create blank file if doesn't exist
-    with open(json_location, "wb") as fp:
-        pass
 
     with open(file_location, encoding='utf-8') as csvf:
         csvReader = csv.reader(csvf)
         counter = 0
         for row in csvReader:
-            if counter == rowLimit:  # first one is the heading
+            if counter == 11 and not all:  # first one is the heading
                 break
             print("raw row")
             print(row)

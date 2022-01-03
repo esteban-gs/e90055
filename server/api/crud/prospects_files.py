@@ -4,7 +4,7 @@ from pydantic.fields import Undefined
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import null
 from starlette import status
-from api.core.file_io import csv_to_json, save_file_to_disk
+from api.core.file_io import get_json_from_scv, save_file_to_disk
 
 from api.models import ProspectsFile, prospect_files
 
@@ -27,7 +27,7 @@ class ProspectsFilesCrud:
         db.refresh(prospects_file)
 
         file_address = save_file_to_disk(file, prospects_file.id)
-        json_to_save = csv_to_json(10, file_address)
+        json_to_save = get_json_from_scv(False, file_address)
 
         prospects_file.fileAddress = file_address
         prospects_file.preview = json_to_save
