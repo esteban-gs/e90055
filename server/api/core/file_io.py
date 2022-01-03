@@ -32,8 +32,8 @@ def save_file_to_disk(file: UploadFile, file_id: int) -> string:
     return file_save_path
 
 
-def csv_to_json(limitRows: int, file_location, headings: bool = True) -> dict:
-    data: dict = {}
+def csv_to_json(limitRows: int, file_location, headings: bool = True) -> list:
+    data: list = []
 
     rowLimit = 0
     if headings:
@@ -58,6 +58,6 @@ def csv_to_json(limitRows: int, file_location, headings: bool = True) -> dict:
             nested = []
             for word in row:
                 nested.append(word)
-            data[counter] = nested
+            data.append(nested)
             counter += 1
     return data

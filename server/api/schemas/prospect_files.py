@@ -20,7 +20,7 @@ class ProspectsFile(BaseModel):
 
 class ProspectsFileCreateResponse(BaseModel):
     id: int
-    preview: dict
+    preview: list
 
 
 class ProspectsFilePersitRequest(BaseModel):

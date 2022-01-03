@@ -18,23 +18,23 @@ def seed_data(db: Session):
 
     prospectFiles1 = ProspectsFile(
         fileAddress="server/files/file1.csv",
-        preview={
-            "0": [
+        preview=[
+            [
                 "first",
                 "last",
                 "email"
             ],
-            "1": [
+            [
                 "Peter",
                 "Parker",
                 "peter@example.com"
             ],
-            "2": [
+            [
                 "Mary",
                 "Jane",
                 "mary@example.com"
             ]
-        },
+        ],
         status=ImportStatus.complete,
         user=user1)
     db.add(prospectFiles1)
