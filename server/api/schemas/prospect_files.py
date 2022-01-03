@@ -18,6 +18,14 @@ class ProspectsFile(BaseModel):
 # class ProspectFileCreate(BaseModel):
 #     file: UploadFile
 
-class ProspectFileCreateResponse(BaseModel):
+class ProspectsFileCreateResponse(BaseModel):
     id: int
     preview: dict
+
+
+class ProspectsFilePersitRequest(BaseModel):
+    email_index: int
+    first_name_index: int
+    last_name_index: int
+    force: bool
+    has_headers: bool

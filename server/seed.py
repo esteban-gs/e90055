@@ -2,9 +2,11 @@ from pydantic.types import Json
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import cast
 from sqlalchemy.sql.sqltypes import JSON
+from starlette import status
 from api.dependencies.db import get_db
 from api.core.security import get_password_hash
 from api.models import User, Prospect, Campaign, CampaignProspect, ProspectsFile
+from api.models.prospect_files import ImportStatus
 
 
 def seed_data(db: Session):
@@ -17,10 +19,23 @@ def seed_data(db: Session):
     prospectFiles1 = ProspectsFile(
         fileAddress="server/files/file1.csv",
         preview={
-            ["a", "b"],
-            ["1", "2"],
-            ["1", "2"],            
+            "0": [
+                "first",
+                "last",
+                "email"
+            ],
+            "1": [
+                "Peter",
+                "Parker",
+                "peter@example.com"
+            ],
+            "2": [
+                "Mary",
+                "Jane",
+                "mary@example.com"
+            ]
         },
+        status=ImportStatus.complete,
         user=user1)
     db.add(prospectFiles1)
 
