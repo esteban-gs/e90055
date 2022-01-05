@@ -12,31 +12,19 @@ from api.models.prospect_files import ImportStatus
 def seed_data(db: Session):
     print("-- Seeding Data --")
     # Create user
-    user1 = User(email="test@test.com",
-                 password_digest=get_password_hash("sample"))
+    user1 = User(email="test@test.com", password_digest=get_password_hash("sample"))
     db.add(user1)
 
     prospectFiles1 = ProspectsFile(
         fileAddress="server/files/file1.csv",
         preview=[
-            [
-                "first",
-                "last",
-                "email"
-            ],
-            [
-                "Peter",
-                "Parker",
-                "peter@example.com"
-            ],
-            [
-                "Mary",
-                "Jane",
-                "mary@example.com"
-            ]
+            ["first", "last", "email"],
+            ["Peter", "Parker", "peter@example.com"],
+            ["Mary", "Jane", "mary@example.com"],
         ],
         status=ImportStatus.complete,
-        user=user1)
+        user=user1,
+    )
     db.add(prospectFiles1)
 
     example1 = prospectFiles1.preview

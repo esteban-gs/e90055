@@ -18,6 +18,7 @@ class ProspectsFile(BaseModel):
 # class ProspectFileCreate(BaseModel):
 #     file: UploadFile
 
+
 class ProspectsFileCreateResponse(BaseModel):
     id: int
     preview: list

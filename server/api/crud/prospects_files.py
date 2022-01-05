@@ -16,14 +16,10 @@ from api.models import ProspectsFile, prospect_files, Prospect
 class ProspectsFilesCrud:
     @classmethod
     def create_prospects_files(
-            cls,
-            db: Session,
-            user_id: int,
-            file: bytes) -> Union[ProspectsFile, None]:
+        cls, db: Session, user_id: int, file: bytes
+    ) -> Union[ProspectsFile, None]:
         prospects_file = ProspectsFile(
-            fileAddress="",
-            user_id=user_id,
-            status=prospect_files.ImportStatus.pending
+            fileAddress="", user_id=user_id, status=prospect_files.ImportStatus.pending
         )
 
         db.add(prospects_file)
@@ -43,15 +39,13 @@ class ProspectsFilesCrud:
         return prospects_file
 
     @classmethod
-    def get_prospects_file(
-        cls,
-        db: Session,
-        prospects_file_id: int
-    ) -> ProspectsFile:
+    def get_prospects_file(cls, db: Session, prospects_file_id: int) -> ProspectsFile:
 
-        db_prospects_file = db.query(ProspectsFile)\
-            .filter(ProspectsFile.id == prospects_file_id)\
+        db_prospects_file = (
+            db.query(ProspectsFile)
+            .filter(ProspectsFile.id == prospects_file_id)
             .first()
+        )
 
         if db_prospects_file is None:
             return None
@@ -64,16 +58,14 @@ class ProspectsFilesCrud:
         db: Session,
         prospects_file_id: int,
         user_id: int,
-        options: schemas.ProspectsFilePersitRequest
+        options: schemas.ProspectsFilePersitRequest,
     ):
         print("\n STARTING start_import_process_in_background PROCESS \n")
 
-        db_prospects_file = db.query(ProspectsFile)\
-            .get(prospects_file_id)
+        db_prospects_file = db.query(ProspectsFile).get(prospects_file_id)
 
         if db_prospects_file is None:
-            raise Exception(
-                "Error finding prospectsFiles record: " + prospects_file_id)
+            raise Exception("Error finding prospectsFiles record: " + prospects_file_id)
 
         # Skip the first row if “has_headers” parameter is true.
         range_start = 1 if options.has_headers else 0
@@ -95,14 +87,15 @@ class ProspectsFilesCrud:
             row: list = raw_row.split(",")
 
             # match
-            matched_record = db.query(Prospect)\
-                .filter(Prospect.email == row[options.email_index])\
+            matched_record = (
+                db.query(Prospect)
+                .filter(Prospect.email == row[options.email_index])
                 .first()
+            )
 
             # Overwrite existing prospects if “force” parameter is true
             if matched_record is not None and options.force:
-                print("RECORD MATCHED: " +
-                      matched_record.id.__str__())
+                print("RECORD MATCHED: " + matched_record.id.__str__())
 
                 diffs = 0
                 if row[options.email_index] != matched_record.email:
@@ -129,7 +122,7 @@ class ProspectsFilesCrud:
                     email=EmailStr(row[options.email_index]),
                     first_name=row[options.first_name_index],
                     last_name=row[options.last_name_index],
-                    user_id=user_id
+                    user_id=user_id,
                 )
                 db.add(prospect)
                 db.commit()

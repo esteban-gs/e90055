@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api", tags=["prospects_files"])
 def create_prospects_file(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: schemas.User = Depends(get_current_user)
+    current_user: schemas.User = Depends(get_current_user),
 ):
     if file.content_type != "text/csv":
         raise HTTPException(
@@ -33,12 +33,10 @@ def create_prospects_file(
 
     # needs to be created first to ge the
     new_record = ProspectsFilesCrud.create_prospects_files(
-        db, current_user.id, file.file)
-
-    return ProspectsFileCreateResponse(
-        id=new_record.id,
-        preview=new_record.preview
+        db, current_user.id, file.file
     )
+
+    return ProspectsFileCreateResponse(id=new_record.id, preview=new_record.preview)
 
 
 @router.post("/prospects-files/{prospects_file_id}/prospects")
@@ -47,25 +45,24 @@ def persist_prospects_files(
     prospects_file_id: str,
     background_tasks: BackgroundTasks,
     current_user: schemas.User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
 
     # get db record
-    db_prospects_file = ProspectsFilesCrud.get_prospects_file(
-        db, prospects_file_id)
+    db_prospects_file = ProspectsFilesCrud.get_prospects_file(db, prospects_file_id)
 
     if db_prospects_file is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Record Not Found"
         )
     # set configuration based on the request -> pass to crud
-     # set configuration based on the request -> pass to core
+    # set configuration based on the request -> pass to core
     background_tasks.add_task(
         ProspectsFilesCrud.start_import_process_in_background,
         db,
         prospects_file_id=prospects_file_id,
         user_id=current_user.id,
-        options=data
+        options=data,
     )
 
     return db_prospects_file

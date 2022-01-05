@@ -9,7 +9,7 @@ import json
 
 
 def save_file_to_disk(file: bytes, file_id: int) -> string:
-    file_name = '{}.csv'.format(file_id)
+    file_name = "{}.csv".format(file_id)
 
     dir_save_path = os.path.join("files")
 
@@ -30,16 +30,16 @@ def save_file_to_disk(file: bytes, file_id: int) -> string:
 def get_meta_data_from_scv(file_location, headings: bool = True) -> list:
     preview: list = []
 
-    with open(file_location, encoding='utf-8') as csvf:
+    with open(file_location, encoding="utf-8") as csvf:
         csvReader = csv.reader(csvf)
         counter = 0
         for row in csvReader:
-            if row.__len__ != 0: # skip empty rows, plz
+            if row.__len__ != 0:  # skip empty rows, plz
                 print("raw row")
                 print(row)
                 counter += 1
 
-            if counter < 10: # preview only
+            if counter < 10:  # preview only
                 nested = []
                 for word in row:
                     nested.append(word)
