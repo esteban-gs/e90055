@@ -27,6 +27,9 @@ class ProspectsFile(Base):
     fileAddress = Column(String, index=True, nullable=False)
     # JSONB postgres type: https://amercader.net/blog/beware-of-json-fields-in-sqlalchemy/
     preview = Column(mutable_json_type(dbtype=JSONB, nested=True), index=True)
+    file_rows = Column(BigInteger)
+    total_data_rows = Column(BigInteger)
+    done = Column(BigInteger, default=0)
     status = Column(Enum(ImportStatus), nullable=false)
     user_id = Column(BigInteger, ForeignKey("users.id"))
 

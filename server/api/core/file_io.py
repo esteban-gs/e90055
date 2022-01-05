@@ -1,14 +1,14 @@
 import os
 import string
+import linecache
+from shutil import copyfileobj
 from fastapi.datastructures import UploadFile
 
 import csv
 import json
 
 
-def save_file_to_disk(file: UploadFile, file_id: int) -> string:
-    fileBytes = file.file.read()
-
+def save_file_to_disk(file: bytes, file_id: int) -> string:
     file_name = '{}.csv'.format(file_id)
 
     dir_save_path = os.path.join("files")
@@ -18,13 +18,8 @@ def save_file_to_disk(file: UploadFile, file_id: int) -> string:
     if not os.path.exists(dir_save_path):
         os.mkdir(dir_save_path)
 
-    # create blank file id doesn't exist
-    with open(file_save_path, "wb") as fp:
-        pass
-
-    file1 = open(file_save_path, "wb")
-    file1.write(fileBytes)
-    file1.close()
+    with open(file_save_path, "wb+") as out_file:
+        copyfileobj(file, out_file)  # write in chunks
 
     # is files wasn't saved something went wrong
     if not os.path.exists(file_save_path):
@@ -32,20 +27,26 @@ def save_file_to_disk(file: UploadFile, file_id: int) -> string:
     return file_save_path
 
 
-def get_json_from_scv(all: bool, file_location, headings: bool = True) -> list:
-    data: list = []
+def get_meta_data_from_scv(file_location, headings: bool = True) -> list:
+    preview: list = []
 
     with open(file_location, encoding='utf-8') as csvf:
         csvReader = csv.reader(csvf)
         counter = 0
         for row in csvReader:
-            if counter == 11 and not all:  # first one is the heading
-                break
-            print("raw row")
-            print(row)
-            nested = []
-            for word in row:
-                nested.append(word)
-            data.append(nested)
-            counter += 1
-    return data
+            if row.__len__ != 0: # skip empty rows, plz
+                print("raw row")
+                print(row)
+                counter += 1
+
+            if counter < 10: # preview only
+                nested = []
+                for word in row:
+                    nested.append(word)
+                preview.append(nested)
+        print(counter)
+    return [counter, preview]
+
+
+def read_csv_by_line(index: int, file_path) -> str:
+    return linecache.getline(file_path, index + 1).rstrip()
