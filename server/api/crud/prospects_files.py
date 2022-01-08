@@ -66,8 +66,7 @@ class ProspectsFilesCrud:
         db_prospects_file = db.query(ProspectsFile).get(prospects_file_id)
 
         if db_prospects_file is None:
-            raise Exception(
-                "Error finding prospectsFiles record: " + prospects_file_id)
+            raise Exception("Error finding prospectsFiles record: " + prospects_file_id)
 
         # Skip the first row if “has_headers” parameter is true.
         range_start = 1 if options.has_headers else 0
@@ -139,9 +138,3 @@ class ProspectsFilesCrud:
         db.commit()
 
         print("\n PROCESS COMPLETE start_import_process_in_background \n")
-
-    @classmethod
-    def validate_or_abort(
-        cls, db: Session, prospects_file_id: int, file: bytes
-    ) -> bool:
-        return False
