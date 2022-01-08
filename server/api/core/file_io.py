@@ -2,6 +2,8 @@ import os
 import string
 import linecache
 from shutil import copyfileobj
+from tempfile import SpooledTemporaryFile
+from typing import IO, Union
 from fastapi.datastructures import UploadFile
 
 import csv
@@ -50,3 +52,26 @@ def get_meta_data_from_scv(file_location, headings: bool = True) -> list:
 
 def read_csv_by_line(index: int, file_path) -> str:
     return linecache.getline(file_path, index + 1).rstrip()
+
+
+def get_file_size_in_mb_in_mem(file: UploadFile) -> int:
+    # when reading a file multiple times, returning the byte pointer to 0 is required
+    # https://stackoverflow.com/a/28320785/13862254
+
+    # validate file size in MB
+    BYTE_TO_MB_RATIO = 1000000
+    file_in_mem_length = None
+    try:
+        file_in_mem_length = file.file.seek(0, os.SEEK_END)
+        print("file length: ", file_in_mem_length)
+        file.file.seek(0, 0)
+    except:
+        raise Exception("Unable to read file")
+    return file_in_mem_length.__sizeof__() / BYTE_TO_MB_RATIO
+
+
+def get_csv_row_count_in_mem(file: UploadFile) -> int:
+    MAX_FILE_ROWS = 1000000
+    number_of_file_rows = file.file.readlines().__len__()
+    file.file.seek(0, 0)
+    return number_of_file_rows

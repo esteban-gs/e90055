@@ -1,3 +1,4 @@
+import time
 import string
 from typing import Union
 from fastapi.datastructures import UploadFile
@@ -65,7 +66,8 @@ class ProspectsFilesCrud:
         db_prospects_file = db.query(ProspectsFile).get(prospects_file_id)
 
         if db_prospects_file is None:
-            raise Exception("Error finding prospectsFiles record: " + prospects_file_id)
+            raise Exception(
+                "Error finding prospectsFiles record: " + prospects_file_id)
 
         # Skip the first row if “has_headers” parameter is true.
         range_start = 1 if options.has_headers else 0
@@ -81,6 +83,7 @@ class ProspectsFilesCrud:
         new_record_count = 0
 
         for i in range(range_start, total_index):
+            # time.sleep(.5) ## !! only here during development to see the progress during development
             raw_row: str = read_csv_by_line(i, db_prospects_file.fileAddress)
 
             # model row
@@ -131,3 +134,14 @@ class ProspectsFilesCrud:
                 # save how many prospects are inserted from this CSV file
                 db_prospects_file.done = new_record_count
                 db.commit()
+
+        db_prospects_file.status = prospect_files.ImportStatus.complete
+        db.commit()
+
+        print("\n PROCESS COMPLETE start_import_process_in_background \n")
+
+    @classmethod
+    def validate_or_abort(
+        cls, db: Session, prospects_file_id: int, file: bytes
+    ) -> bool:
+        return False

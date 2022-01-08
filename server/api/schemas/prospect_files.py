@@ -9,7 +9,7 @@ class ProspectsFile(BaseModel):
     updated_at: datetime
 
     fileAddress: str
-    preview: dict  # 2D array representing first 10 rows
+    preview: list  # 2D array representing first 10 rows
 
     class Config:
         orm_mode = True
@@ -22,6 +22,11 @@ class ProspectsFile(BaseModel):
 class ProspectsFileCreateResponse(BaseModel):
     id: int
     preview: list
+
+
+class ProspectsFileImportStatusResponse(BaseModel):
+    total: int
+    done: int
 
 
 class ProspectsFilePersitRequest(BaseModel):
