@@ -1,14 +1,9 @@
-import time
-import string
+import logging
 from typing import Union
-from fastapi.datastructures import UploadFile
-from pydantic.fields import Undefined
 from pydantic.networks import EmailStr
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.expression import null
-from starlette import status
 from api import schemas
-from api.core.file_io import get_meta_data_from_scv, read_csv_by_line, save_file_to_disk
+from api.core.file_io import read_csv_by_line, save_file_to_disk, get_meta_data_from_csv
 from api.crud.prospect import ProspectCrud
 
 from api.models import ProspectsFile, prospect_files, Prospect
@@ -20,7 +15,7 @@ class ProspectsFilesCrud:
         cls, db: Session, user_id: int, file: bytes
     ) -> Union[ProspectsFile, None]:
         prospects_file = ProspectsFile(
-            fileAddress="", user_id=user_id, status=prospect_files.ImportStatus.pending
+            file_address="", user_id=user_id, status=prospect_files.ImportStatus.pending
         )
 
         db.add(prospects_file)
@@ -28,11 +23,10 @@ class ProspectsFilesCrud:
         db.refresh(prospects_file)
 
         file_address = save_file_to_disk(file, prospects_file.id)
-        csv_metadata = get_meta_data_from_scv(file_address)
+        csv_metadata = get_meta_data_from_csv(file_address)
 
-        prospects_file.fileAddress = file_address
-        prospects_file.preview = csv_metadata[1]  # json preview
-        prospects_file.file_rows = csv_metadata[0]  # rows
+        prospects_file.file_address = file_address
+        prospects_file.file_rows = csv_metadata.rows
 
         db.commit()
         db.refresh(prospects_file)
@@ -61,29 +55,25 @@ class ProspectsFilesCrud:
         user_id: int,
         options: schemas.ProspectsFilePersitRequest,
     ):
-        print("\n STARTING start_import_process_in_background PROCESS \n")
-
+        logging.info("BACKGROUND TASK STARTED")
         db_prospects_file = db.query(ProspectsFile).get(prospects_file_id)
 
         if db_prospects_file is None:
-            raise Exception("Error finding prospectsFiles record: " + prospects_file_id)
+            raise Exception(
+                "Error finding prospectsFiles record: " + prospects_file_id)
 
         # Skip the first row if “has_headers” parameter is true.
         range_start = 1 if options.has_headers else 0
         total_index = db_prospects_file.file_rows
         total_data_rows = total_index - range_start
-        print("TOTAL DATA ROWS IN FILE " + total_data_rows.__str__() + "\n")
 
         # save the actual number of data rows
         db_prospects_file.total_data_rows = total_data_rows
         db.commit()
         db.refresh(db_prospects_file)
 
-        new_record_count = 0
-
         for i in range(range_start, total_index):
-            # time.sleep(.5) ## !! only here during development to see the progress during development
-            raw_row: str = read_csv_by_line(i, db_prospects_file.fileAddress)
+            raw_row: str = read_csv_by_line(i, db_prospects_file.file_address)
 
             # model row
             row: list = raw_row.split(",")
@@ -97,7 +87,6 @@ class ProspectsFilesCrud:
 
             # Overwrite existing prospects if “force” parameter is true
             if matched_record is not None and options.force:
-                print("RECORD MATCHED: " + matched_record.id.__str__())
 
                 diffs = 0
                 if row[options.email_index] != matched_record.email:
@@ -111,30 +100,39 @@ class ProspectsFilesCrud:
                     diffs += 1
 
                 if diffs > 0:
-                    print("DIFFS FOUND, UPDATING")
+                    matched_record.prospects_file_id = prospects_file_id
                     db.commit()
-                else:
-                    print("NO DIFFS FOUND, SKIPPING UPDATE")
 
-            # if no match, create
+            # if no match, create, but only when email validates, otherwise skip the row
             if matched_record is None:
-                print("NO RECORD MATCHED, CREATING NEW RECORD")
-
-                prospect = Prospect(
-                    email=EmailStr(row[options.email_index]),
-                    first_name=row[options.first_name_index],
-                    last_name=row[options.last_name_index],
-                    user_id=user_id,
-                )
-                db.add(prospect)
-                db.commit()
-                new_record_count += 1
-
-                # save how many prospects are inserted from this CSV file
-                db_prospects_file.done = new_record_count
-                db.commit()
+                try:
+                    email_to_save = EmailStr.validate(row[options.email_index])
+                except Exception as e:
+                    logging.debug(e)
+                    logging.debug("skipping invalid row with email: " +
+                                  row[options.email_index])
+                else:
+                    prospect = Prospect(
+                        email=email_to_save,
+                        first_name=row[options.first_name_index],
+                        last_name=row[options.last_name_index],
+                        user_id=user_id,
+                        prospects_file_id=prospects_file_id
+                    )
+                    db.add(prospect)
+                    db.commit()
 
         db_prospects_file.status = prospect_files.ImportStatus.complete
         db.commit()
+        logging.info("BACKGROUND TASK ENDED")
 
-        print("\n PROCESS COMPLETE start_import_process_in_background \n")
+    @classmethod
+    def get_import_progress_for(
+        cls,
+        db: Session,
+        prospects_file_id: int
+    ) -> int:
+        total_imported = db.query(Prospect)\
+            .filter(Prospect.prospects_file_id == prospects_file_id)\
+            .count()
+        return 0 if total_imported == None else total_imported

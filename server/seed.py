@@ -16,19 +16,11 @@ def seed_data(db: Session):
     db.add(user1)
 
     prospectFiles1 = ProspectsFile(
-        fileAddress="server/files/file1.csv",
-        preview=[
-            ["first", "last", "email"],
-            ["Peter", "Parker", "peter@example.com"],
-            ["Mary", "Jane", "mary@example.com"],
-        ],
+        file_address="server/files/file1.csv",
         status=ImportStatus.complete,
         user=user1,
     )
     db.add(prospectFiles1)
-
-    example1 = prospectFiles1.preview
-    print(type(example1))
 
     for i in range(20):
         # Create campaigns for user

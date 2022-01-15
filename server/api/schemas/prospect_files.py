@@ -8,19 +8,19 @@ class ProspectsFile(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    fileAddress: str
-    preview: list  # 2D array representing first 10 rows
+    file_address: str
 
     class Config:
         orm_mode = True
 
 
-# class ProspectFileCreate(BaseModel):
-#     file: UploadFile
-
-
 class ProspectsFileCreateResponse(BaseModel):
     id: int
+    preview: list
+
+
+class ProspectsFilePreview(BaseModel):
+    rows: int
     preview: list
 
 

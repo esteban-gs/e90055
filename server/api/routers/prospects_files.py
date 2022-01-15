@@ -7,7 +7,7 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import null
 
 from api import schemas
-from api.core.file_io import get_csv_row_count_in_mem, get_file_size_in_mb_in_mem
+from api.core.file_io import get_csv_row_count_in_mem, get_file_size_in_mb_in_mem, get_meta_data_from_csv
 from api.crud.prospects_files import ProspectsFilesCrud
 from api.schemas.prospect_files import (
     ProspectsFile,
@@ -71,7 +71,10 @@ async def create_prospects_file(
         db, current_user.id, file.file
     )
 
-    return ProspectsFileCreateResponse(id=new_record.id, preview=new_record.preview)
+    return ProspectsFileCreateResponse(
+        id=new_record.id,
+        preview=get_meta_data_from_csv(new_record.file_address).preview
+    )
 
 
 @router.post(
@@ -91,7 +94,8 @@ def persist_prospects_files(
         )
 
     # get db record
-    db_prospects_file = ProspectsFilesCrud.get_prospects_file(db, prospects_file_id)
+    db_prospects_file = ProspectsFilesCrud.get_prospects_file(
+        db, prospects_file_id)
 
     if db_prospects_file is None:
         raise HTTPException(
@@ -110,8 +114,7 @@ def persist_prospects_files(
         id=db_prospects_file.id,
         created_at=db_prospects_file.created_at,
         updated_at=db_prospects_file.updated_at,
-        fileAddress=db_prospects_file.fileAddress,
-        preview=db_prospects_file.preview,
+        file_address=db_prospects_file.file_address,
     )
 
 
@@ -129,7 +132,10 @@ def progress_status(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
         )
     # get db record
-    db_prospects_file = ProspectsFilesCrud.get_prospects_file(db, prospects_file_id)
+    db_prospects_file = ProspectsFilesCrud.get_prospects_file(
+        db, prospects_file_id)
+
+    done = ProspectsFilesCrud.get_import_progress_for(db, prospects_file_id)
 
     if db_prospects_file is None:
         raise HTTPException(
@@ -137,5 +143,5 @@ def progress_status(
         )
 
     return ProspectsFileImportStatusResponse(
-        total=db_prospects_file.total_data_rows, done=db_prospects_file.done
+        total=db_prospects_file.total_data_rows, done=done
     )
