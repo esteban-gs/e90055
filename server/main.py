@@ -32,7 +32,8 @@ class InterceptHandler(logging.Handler):
             depth += 1
 
         logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage())
+            level, record.getMessage()
+        )
 
 
 def setup_logging():

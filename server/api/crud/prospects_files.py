@@ -59,8 +59,7 @@ class ProspectsFilesCrud:
         db_prospects_file = db.query(ProspectsFile).get(prospects_file_id)
 
         if db_prospects_file is None:
-            raise Exception(
-                "Error finding prospectsFiles record: " + prospects_file_id)
+            raise Exception("Error finding prospectsFiles record: " + prospects_file_id)
 
         # Skip the first row if “has_headers” parameter is true.
         range_start = 1 if options.has_headers else 0
@@ -109,15 +108,16 @@ class ProspectsFilesCrud:
                     email_to_save = EmailStr.validate(row[options.email_index])
                 except Exception as e:
                     logging.debug(e)
-                    logging.debug("skipping invalid row with email: " +
-                                  row[options.email_index])
+                    logging.debug(
+                        "skipping invalid row with email: " + row[options.email_index]
+                    )
                 else:
                     prospect = Prospect(
                         email=email_to_save,
                         first_name=row[options.first_name_index],
                         last_name=row[options.last_name_index],
                         user_id=user_id,
-                        prospects_file_id=prospects_file_id
+                        prospects_file_id=prospects_file_id,
                     )
                     db.add(prospect)
                     db.commit()
@@ -127,12 +127,10 @@ class ProspectsFilesCrud:
         logging.info("BACKGROUND TASK ENDED")
 
     @classmethod
-    def get_import_progress_for(
-        cls,
-        db: Session,
-        prospects_file_id: int
-    ) -> int:
-        total_imported = db.query(Prospect)\
-            .filter(Prospect.prospects_file_id == prospects_file_id)\
+    def get_import_progress_for(cls, db: Session, prospects_file_id: int) -> int:
+        total_imported = (
+            db.query(Prospect)
+            .filter(Prospect.prospects_file_id == prospects_file_id)
             .count()
+        )
         return 0 if total_imported == None else total_imported
