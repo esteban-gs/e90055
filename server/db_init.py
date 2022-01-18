@@ -5,7 +5,10 @@ from sqlalchemy.sql.schema import Table
 
 from api.dependencies.db import get_db
 from api.database import Base, engine
-from api.models import User, Prospect, Campaign, CampaignProspect
+from api.models import User, Prospect, Campaign, CampaignProspect, ProspectsFile
+
+import os
+import shutil
 
 
 if __name__ == "__main__":
@@ -18,11 +21,17 @@ if __name__ == "__main__":
             Campaign.__table__,
             Prospect.__table__,
             User.__table__,
+            ProspectsFile.__table__,
         ]
         print("\n-- Dropping All Tables --")
         for t in ordered_drop:
             print(f"...{t.name}")
         Base.metadata.drop_all(bind=engine, tables=ordered_drop)
+
+        print("\n-- Dropping files folder")
+        dir_file_storage = os.path.join("files")
+        if os.path.exists(dir_file_storage) and os.path.isdir(dir_file_storage):
+            shutil.rmtree(dir_file_storage)
 
     print("\n-- Creating Tables --")
     metadata: MetaData = Base.metadata

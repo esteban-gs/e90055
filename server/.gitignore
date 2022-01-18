@@ -1,5 +1,9 @@
 # Docker postgres data volume
 pgdata
+.data
+
+# files/*
+files
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

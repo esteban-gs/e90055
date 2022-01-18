@@ -7,3 +7,5 @@ sqlalchemy
 psycopg2-binary
 python-multipart
 passlib
+sqlalchemy_json
+loguru
