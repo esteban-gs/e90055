@@ -98,9 +98,9 @@ def persist_prospects_files(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
         )
 
-    # get db record
+    # get db record with {id} belonging to current user
     db_prospects_file = ProspectsFilesCrud.get_prospects_file(
-        db, prospects_file_id)
+        db, prospects_file_id, current_user.id)
 
     if db_prospects_file is None:
         raise HTTPException(
@@ -136,9 +136,9 @@ def progress_status(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
         )
-    # get db record
+    # get db record with {id} belonging to current user
     db_prospects_file = ProspectsFilesCrud.get_prospects_file(
-        db, prospects_file_id)
+        db, prospects_file_id, current_user.id)
 
     done = ProspectsFilesCrud.get_import_progress_for(db, prospects_file_id)
 

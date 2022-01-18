@@ -34,11 +34,11 @@ class ProspectsFilesCrud:
         return prospects_file
 
     @classmethod
-    def get_prospects_file(cls, db: Session, prospects_file_id: int) -> ProspectsFile:
+    def get_prospects_file(cls, db: Session, prospects_file_id: int, user_id: int) -> ProspectsFile:
 
         db_prospects_file = (
             db.query(ProspectsFile)
-            .filter(ProspectsFile.id == prospects_file_id)
+            .filter(ProspectsFile.id == prospects_file_id, ProspectsFile.user_id == user_id)
             .first()
         )
 
@@ -59,7 +59,8 @@ class ProspectsFilesCrud:
         db_prospects_file = db.query(ProspectsFile).get(prospects_file_id)
 
         if db_prospects_file is None:
-            raise Exception("Error finding prospectsFiles record: " + prospects_file_id)
+            raise Exception(
+                "Error finding prospectsFiles record: " + prospects_file_id)
 
         # Skip the first row if “has_headers” parameter is true.
         range_start = 1 if options.has_headers else 0
@@ -109,7 +110,8 @@ class ProspectsFilesCrud:
                 except Exception as e:
                     logging.debug(e)
                     logging.debug(
-                        "skipping invalid row with email: " + row[options.email_index]
+                        "skipping invalid row with email: " +
+                        row[options.email_index]
                     )
                 else:
                     prospect = Prospect(
