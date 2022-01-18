@@ -88,7 +88,7 @@ async def create_prospects_file(
 )
 def persist_prospects_files(
     data: schemas.ProspectsFilePersitRequest,
-    prospects_file_id: str,
+    prospects_file_id: int,
     background_tasks: BackgroundTasks,
     current_user: schemas.User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -128,7 +128,7 @@ def persist_prospects_files(
     response_model=schemas.ProspectsFileImportStatusResponse,
 )
 def progress_status(
-    prospects_file_id,
+    prospects_file_id: int,
     current_user: schemas.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
