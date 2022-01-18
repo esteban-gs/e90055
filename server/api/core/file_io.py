@@ -37,7 +37,7 @@ def get_meta_data_from_csv(file_location) -> ProspectsFilePreview:
         csvReader = csv.reader(csvf)
         rows = 0
         for row in csvReader:
-            if row.__len__ != 0:  # skip empty rows, plz
+            if len(row) != 0:  # skip empty rows, plz
                 rows += 1
 
             if rows < PREVIEW_LIMIT:  # preview only
@@ -60,11 +60,12 @@ def get_file_size_in_mb_in_mem(file: UploadFile) -> int:
     BYTE_TO_MB_RATIO = 1000000
     file_in_mem_length = None
     try:
-        file_in_mem_length = file.file.seek(0, os.SEEK_END)
+        file.file.seek(0, os.SEEK_END)
+        file_in_mem_length = file.file.tell()
         file.file.seek(0, 0)
     except:
         raise Exception("Unable to read file")
-    return file_in_mem_length.__sizeof__() / BYTE_TO_MB_RATIO
+    return file_in_mem_length / BYTE_TO_MB_RATIO
 
 
 def get_csv_row_count_in_mem(file: UploadFile) -> int:
