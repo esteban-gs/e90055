@@ -7,11 +7,13 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import null
 
 from api import schemas
+from api.core.constants import MAX_FILE_ROWS, MAX_FILE_SIZE_MB
 from api.core.file_io import (
     get_csv_row_count_in_mem,
     get_file_size_in_mb_in_mem,
     get_meta_data_from_csv,
 )
+from api.core.helpers import to_millions
 from api.crud.prospects_files import ProspectsFilesCrud
 from api.schemas.prospect_files import (
     ProspectsFile,
@@ -43,7 +45,6 @@ async def create_prospects_file(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Please upload a csv file"
         )
 
-    MAX_FILE_SIZE_MB = 200
     file_mb_size = None
     try:
         file_mb_size = get_file_size_in_mb_in_mem(file)
@@ -57,18 +58,18 @@ async def create_prospects_file(
     if not is_valid_file_mb_size:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Maximum File Size of 200 MB Reached",
+            detail="Maximum File Size of % MB Reached" % (MAX_FILE_SIZE_MB),
         )
 
     # validate file rows
-    MAX_FILE_ROWS = 1000000
     number_of_file_rows = get_csv_row_count_in_mem(file)
     is_valid_file_rows = number_of_file_rows <= MAX_FILE_ROWS
 
     if not is_valid_file_rows:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Maximum NUMBER OF 1 MILLION ROWS EXCEEED",
+            detail="Maximum NUMBER OF % MILLION ROWS EXCEEED" % (
+                to_millions(MAX_FILE_ROWS)),
         )
 
     new_record = ProspectsFilesCrud.create_prospects_files(
@@ -98,7 +99,8 @@ def persist_prospects_files(
         )
 
     # get db record
-    db_prospects_file = ProspectsFilesCrud.get_prospects_file(db, prospects_file_id)
+    db_prospects_file = ProspectsFilesCrud.get_prospects_file(
+        db, prospects_file_id)
 
     if db_prospects_file is None:
         raise HTTPException(
@@ -135,7 +137,8 @@ def progress_status(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Please log in"
         )
     # get db record
-    db_prospects_file = ProspectsFilesCrud.get_prospects_file(db, prospects_file_id)
+    db_prospects_file = ProspectsFilesCrud.get_prospects_file(
+        db, prospects_file_id)
 
     done = ProspectsFilesCrud.get_import_progress_for(db, prospects_file_id)
 
